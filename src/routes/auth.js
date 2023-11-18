@@ -1,16 +1,41 @@
 const express = require('express');
-const router = express.Router();
+const bcrypt = require('bcrypt');
 const passport = require('passport');
+const User = require('./models/User');
+const authRouter = express.Router();
 
-router.post('/login', passport.authenticate('local', {
+authRouter.post('/register', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const existingUser = await User.findOne({ username });
+
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username already exists' });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({
+      username,
+      password: hashedPassword,
+    });
+
+    await newUser.save();
+
+    res.status(201).json({ message: 'Registration successful' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+authRouter.post('/login', passport.authenticate('local', {
   successRedirect: '/products',
   failureRedirect: '/login',
   failureFlash: true,
 }));
 
-router.get('/logout', (req, res) => {
+authRouter.get('/logout', (req, res) => {
   req.logout();
   res.redirect('/login');
 });
 
-module.exports = router;
+module.exports = authRouter;
