@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   last_name: String,
   email: { type: String, unique: true },
   age: Number,
-  password: String, // Store hashed password
+  password: String,
   cart: { type: mongoose.Schema.Types.ObjectId, ref: 'Cart' },
   role: { type: String, default: 'user' },
 });
